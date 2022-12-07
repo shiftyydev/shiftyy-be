@@ -1,0 +1,8 @@
+PORT = 5000
+JWT_SECRET = 'secret'
+ENV = 'development'
+DB_HOST=localhost
+DB_PASSWORD=1234
+DB_USER=postgres
+DB_PORT=5432
+
