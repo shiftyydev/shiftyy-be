@@ -1,17 +1,30 @@
 const { tbl_routes } = require("../models");
 const log = require("../utils/logger");
 
-const createRoute = (req, res) => {
+const createRoute = async (body) => {
   try {
-  } catch (error) {}
-  tbl_routes.create(req.body).then((newEquipment) => {
-    res.json(newEquipment);
-  });
+    let route = await tbl_routes.create(body);
+    return {
+      status: 200,
+      message: "Route created successfully",
+      route: route,
+    };
+  } catch (error) {
+    log.info(error);
+    return {
+      status: 500,
+      message: "Something went wrong",
+    };
+  }
 };
 
-const getAllRoutes = async () => {
+const getAllRoutes = async (page=1,sortBy=[['id',"ASC"]],showing=10) => { // as {"id":25,"name":"HO1V","min":"25","max":"55"}[]
   try {
-    let routes = await tbl_routes.findAll();
+    let routes = await tbl_routes.findAll({
+      limit: showing,
+      offset: page * showing,
+      order: sortBy 
+    });
 
     if (!routes) {
       return {
@@ -33,12 +46,26 @@ const getAllRoutes = async () => {
   }
 };
 
-const getRoute = (req, res) => {
+const getRoutesInfo = async () => {
   try {
-  } catch (error) {}
-  tbl_routes.findByPk(req.params.id).then((tbl_routes) => {
-    res.json(equipment);
-  });
+    // return total routes count
+    let route = await tbl_routes.count();
+    if (!route) {
+      return {
+        status: 400,
+        message: "No route found",
+      };
+    } else {
+      return {
+        status: 200,
+        message: "Route found",
+        page: Math.ceil(route / 10),
+        count : route
+      };
+    }
+  } catch (error) {
+    log.info(error);
+  }
 };
 
 const updateRoute = async (routeId, body) => {
@@ -66,7 +93,6 @@ const deleteRoute = async (routeId) => {
     let deletedRoute = await tbl_routes.destroy({
       where: { id: routeId },
     });
-
     if (deletedRoute == 0) {
       return {
         status: 400,
@@ -89,7 +115,7 @@ const deleteRoute = async (routeId) => {
 module.exports = {
   createRoute,
   getAllRoutes,
-  getRoute,
+  getRoutesInfo,
   updateRoute,
   deleteRoute,
 };

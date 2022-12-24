@@ -2,19 +2,23 @@
 const express = require("express");
 const loginController = require("../controllers/login-controller");
 const {
-  getAllRoutes,
-  updateRoute,
-  deleteRoute,
-  getRoutesInfo,
-  createRoute,
-} = require("../controllers/tbl_routes-controller");
+    createChargingStation,
+    getAllChargingStations,
+    getChargingStation,
+    updateChargingStation,
+    deleteChargingStation,
+    getAllChargingStationsTotalPages,
+    getDistinctChargingStationCountries,
+} = require('../controllers/chargingstations-controller')
 const router = express.Router();
 // models
 const db = require("../models");
 const { sendErrorResp } = require("../utils/common-utils");
+const { getDistinctEquipments } = require("../controllers/equipments-controller");
+const { getDistinctVehicles } = require("../controllers/vehicle-controller");
 
 router.post("/", async (req, res) => {
-  createRoute(req.body)
+  createChargingStation(req.body)
     .then((result) => res.status(result.status).send(result))
     .catch((error) => {
       sendErrorResp(error, req, res);
@@ -23,22 +27,35 @@ router.post("/", async (req, res) => {
 
 
 router.get("/", async (req, res) => {
-  getAllRoutes(req.query.page,JSON.parse(req.query.sortBy),req.query.showing)
+  getAllChargingStations(req.query.page)
     .then((result) => res.status(result.status).send(result))
     .catch((error) => {
       sendErrorResp(error, req, res);
     });
 });
-router.get("/info", async (req, res) => {
-  getRoutesInfo()
-  .then((result) => res.status(result.status).send(result))
+
+router.get("/pages", async (req, res) => {
+  getAllChargingStationsTotalPages()
+    .then((result) => res.status(result.status).send(result))
     .catch((error) => {
       sendErrorResp(error, req, res);
     });
 });
 
+router.get("/distinct", async (req, res) => {
+ const reqs =  [getDistinctChargingStationCountries(),getDistinctEquipments(),getDistinctVehicles()]
+  Promise.all(reqs)
+    .then((result) => res.status(200).send(result))
+    .catch((error) => {
+      sendErrorResp(error, req, res);
+    });
+});
+
+
+
+
 router.patch("/:id", async (req, res) => {
-  updateRoute(req.params.id, req.body)
+  updateChargingStation(req.params.id, req.body)
     .then((result) => res.status(result.status).send(result))
     .catch((error) => {
       sendErrorResp(error, req, res);
@@ -46,7 +63,7 @@ router.patch("/:id", async (req, res) => {
 });
 
 router.delete("/:id", async (req, res) => {
-  deleteRoute(req.params.id)
+  deleteChargingStation(req.params.id)
     .then((result) => res.status(result.status).send(result))
     .catch((error) => {
       sendErrorResp(error, req, res);

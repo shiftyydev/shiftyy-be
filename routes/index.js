@@ -1,16 +1,18 @@
 // express router
 const express = require("express");
-const login = require("../controllers/login-controller");
 const router = express.Router();
 const log = require("../utils/logger");
-const app = express();
-
-// models
-const db = require("../models");
+const jwt = require("jsonwebtoken");
 const tblRoutes_Routes = require("./tbl_routes-routes");
 const vehicleRoutes = require("./vehicles-routes");
+const chargingStationRoutes = require("./chargingstation-routes");
+const userRoutes = require("./user-routes");
+const equipmentRoutes = require("./equipment-routes");
+const tblRoutesAddress_Routes = require("./tbl_routes_address-routes");
+const usaChargingPointRoutes = require("./usa_chargingpoints-route");
+const { isLoggedIn, blacklist } = require("../middleware/isLoggedIn");
+const { userLogin } = require("../controllers/user-controller");
 
-// routes
 router.get("/auth", (req, res) => {
   // if user is logged in, send user data
   if (req.user) {
@@ -21,16 +23,67 @@ router.get("/auth", (req, res) => {
   }
 });
 
-router.get("/login", login);
-
-router.get("/users", (req, res) => {
-  db.users.findAll().then((users) => {
-    res.json(users);
-  });
+router.post("/login", (req, res) => {
+  userLogin(req.body)
+    .then((result) => {
+      res.send(result);
+    })
+    .catch((error) => {
+      log.info(error);
+      res.send(error);
+    });
+});
+router.post("/logout", isLoggedIn, async (req, res) => {
+  try {
+    const token = req.headers["authorization"];
+    if (!token || token == "undefined")
+      res.status(401).send("Unauthorize user");
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    if (!decoded) {
+      res.status(403).send("Unauthorized user");
+    }
+    blacklist.add(token);
+    res.status(200).send("Logout Successfully");
+  } catch (error) {
+    log.info(error);
+    res.send(error);
+  }
 });
 
-router.use("/routes", tblRoutes_Routes);
-router.use("/vehicles", vehicleRoutes);
+router.get("/is-logged-in", isLoggedIn, (req, res) => {
+  const token = req.headers["authorization"];
+  if (!token || token == "undefined") res.status(401).json("Unauthorize user");
+  try {
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    if (!decoded) {
+      res.status(403).send("Unauthorized user");
+    }
+   
+    const obj = {
+      firstName: decoded.dataValues.firstname,
+      lastName: decoded.dataValues.lastname,
+      email: decoded.dataValues.email,
+      token,
+    };
+    res.status(200).send(obj);
+  } catch (error) {
+    log.info(error);
+    res.status(500).json("Something went wronge");
+  }
+});
+// router.get("/users", (req, res) => {
+//   db.users.findAll().then((users) => {
+//     res.json(users);
+//   });
+// });
+
+router.use("/routes", isLoggedIn, tblRoutes_Routes);
+router.use("/vehicles", isLoggedIn, vehicleRoutes);
+router.use("/charging-stations", isLoggedIn, chargingStationRoutes);
+router.use("/users", isLoggedIn, userRoutes);
+router.use("/equipments", isLoggedIn, equipmentRoutes);
+router.use("/routes-address", isLoggedIn, tblRoutesAddress_Routes);
+router.use("/charging-point", isLoggedIn, usaChargingPointRoutes);
 // const setup = (app) => {
 //   if (app) {
 //     log.info("Setting up index...");

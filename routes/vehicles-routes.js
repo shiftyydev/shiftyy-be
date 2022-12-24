@@ -4,14 +4,34 @@ const {
   getAllVehicles,
   updateVehicle,
   deleteVehicle,
+  getVehicle,
+  createVehicle,
+  getVehiclesInfo
 } = require("../controllers/vehicle-controller");
 const router = express.Router();
 // models
 const db = require("../models");
 const { sendErrorResp } = require("../utils/common-utils");
 
+router.post("/", async (req, res) => {
+  createVehicle(req.body)
+    .then((result) => res.status(result.status).send(result))
+    .catch((error) => {
+      sendErrorResp(error, req, res);
+    });
+});
+
 router.get("/", async (req, res) => {
-  getAllVehicles()
+  getAllVehicles(req.query.page,JSON.parse(req.query.sortBy),req.query.showing)
+    .then((result) => res.status(result.status).send(result))
+    .catch((error) => {
+      sendErrorResp(error, req, res);
+    });
+});
+
+
+router.get("/info", async (req, res) => {
+  getVehiclesInfo()
     .then((result) => res.status(result.status).send(result))
     .catch((error) => {
       sendErrorResp(error, req, res);

@@ -1,14 +1,30 @@
 const { vehicles } = require("../models");
+const log = require("../utils/logger");
 
-const createVehicle = (req, res) => {
-  vehicles.create(req.body).then((newVehicle) => {
-    res.json(newVehicle);
-  });
+const createVehicle = async  (body) => {
+ try{
+  let vehicle = await vehicles.create(body);
+ return{
+  status: 200,
+  message: "Vehicle created Successfully",
+  vehicle: vehicle
+ }
+ }catch(error){
+  log.info(error)
+  return {
+    status: 500,
+    message: "Something went wrong",
+  };
+ }
 };
 
-const getAllVehicles = async () => {
+const getAllVehicles = async (page=1,sortBy=[['id',"ASC"]],showing=10) => {
   try {
-    let vehicle = await vehicles.findAll();
+    let vehicle = await vehicles.findAll({
+      limit: showing,
+      offset: page * showing,
+      order: sortBy 
+    });
 
     if (!vehicle) {
       return {
@@ -30,11 +46,61 @@ const getAllVehicles = async () => {
   }
 };
 
-const getVehicle = (req, res) => {
-  vehicle.findByPk(req.params.id).then((vehicle) => {
-    res.json(vehicle);
-  });
+const getVehicle = async (id) => {
+ try{
+  let vehicle = await vehicles.findByPk(id);
+  if (!vehicle) {
+    return {
+      status: 400,
+      message: "No vehicles found",
+    };
+  } else {
+    return {
+      status: 200,
+      message: "Vechicle Found",
+      vehicle: vehicle,
+    };
+  }
+ }catch(error){
+  log.info(error)
+  return {
+    status: 500,
+    message: "Something went wrong",
+  };
+ }
 };
+
+
+
+const getVehiclesInfo = async () => {
+  try {
+    let vehiclesCount = await vehicles.count();
+    if (!vehiclesCount) {
+      return {
+        status: 200,
+        message: "No vehicles found",
+      };
+    }
+    else {
+      return {
+        status: 200,
+        message: "Vehicles Found",
+        count: vehiclesCount,
+        page: Math.ceil(vehiclesCount / 10),
+      };
+    }
+  } catch (error) {
+    log.info(error);
+
+    return {
+      status: 500,
+      message: "Something went wrong",
+    };
+  }
+};
+
+
+    
 
 const updateVehicle = async (vehicleId, body) => {
   try {
@@ -51,7 +117,7 @@ const updateVehicle = async (vehicleId, body) => {
     log.info(error);
     return {
       status: 500,
-      message: "something went wrong",
+      message: "Something went wrong",
     };
   }
 };
@@ -76,10 +142,38 @@ const deleteVehicle = async (vehicleId) => {
     log.info(error);
     return {
       status: 500,
-      message: "something went wrong",
+      message: "Something went wrong",
     };
   }
 };
+
+const getDistinctVehicles = async () => {
+  try {
+    let vehicle = await vehicles.findAll({
+      attributes: ["name"],
+      group: ["name"],
+    });
+
+    if (!vehicle) {
+      return {
+        status: 400,
+        message: "No vehicles found",
+      };
+    } else {
+      return {
+        status: 200,
+        vehicles: vehicle,
+      };
+    }
+  } catch (error) {
+    console.log(error);
+    return {
+      status: 500,
+      message: "Something went wrong",
+    };
+  }
+};
+
 
 module.exports = {
   createVehicle,
@@ -87,4 +181,6 @@ module.exports = {
   getVehicle,
   updateVehicle,
   deleteVehicle,
+  getDistinctVehicles,
+  getVehiclesInfo
 };
