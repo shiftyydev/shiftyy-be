@@ -1,4 +1,4 @@
-const { tbl_routes } = require("../models");
+const { tbl_routes,tbl_route_addresses } = require("../models");
 const log = require("../utils/logger");
 
 const createRoute = async (body) => {
@@ -18,7 +18,7 @@ const createRoute = async (body) => {
   }
 };
 
-const getAllRoutes = async (page=1,sortBy=[['id',"ASC"]],showing=10) => { // as {"id":25,"name":"HO1V","min":"25","max":"55"}[]
+const getAllRoutes = async (page=0,sortBy=[['id',"DESC"]],showing=10) => { // as {"id":25,"name":"HO1V","min":"25","max":"55"}[]
   try {
     let routes = await tbl_routes.findAll({
       limit: showing,
@@ -45,6 +45,39 @@ const getAllRoutes = async (page=1,sortBy=[['id',"ASC"]],showing=10) => { // as 
     };
   }
 };
+
+const getAllRoutesWithAddresses = async () => {
+  try {
+    let routes = await tbl_routes.findAll({
+      include: [
+        {
+          model: tbl_route_addresses,
+          as:'addresses'
+        },
+      ],
+    });
+
+    if (!routes) {
+      return {
+        status: 400,
+        message: "No routes found",
+      };
+    } else {
+      return {
+        status: 200,
+        routes: routes,
+      };
+    }
+  } catch (error) {
+    console.log(error);
+    return {
+      status: 500,
+      message: "Something went wrong",
+    };
+  }
+};
+
+
 
 const getRoutesInfo = async () => {
   try {
@@ -115,6 +148,7 @@ const deleteRoute = async (routeId) => {
 module.exports = {
   createRoute,
   getAllRoutes,
+  getAllRoutesWithAddresses,
   getRoutesInfo,
   updateRoute,
   deleteRoute,

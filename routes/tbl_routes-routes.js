@@ -1,12 +1,12 @@
 // express router
 const express = require("express");
-const loginController = require("../controllers/login-controller");
 const {
   getAllRoutes,
   updateRoute,
   deleteRoute,
   getRoutesInfo,
   createRoute,
+  getAllRoutesWithAddresses
 } = require("../controllers/tbl_routes-controller");
 const router = express.Router();
 // models
@@ -23,12 +23,21 @@ router.post("/", async (req, res) => {
 
 
 router.get("/", async (req, res) => {
-  getAllRoutes(req.query.page,JSON.parse(req.query.sortBy),req.query.showing)
+  getAllRoutes(req.query.page,req.query.sortBy,req.query.showing)
     .then((result) => res.status(result.status).send(result))
     .catch((error) => {
       sendErrorResp(error, req, res);
     });
 });
+
+router.get('/with-addresses', async (req, res) => {
+  getAllRoutesWithAddresses()
+    .then((result) => res.status(result.status).send(result))
+    .catch((error) => {
+      sendErrorResp(error, req, res);
+    });
+});
+
 router.get("/info", async (req, res) => {
   getRoutesInfo()
   .then((result) => res.status(result.status).send(result))

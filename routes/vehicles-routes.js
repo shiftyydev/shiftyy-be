@@ -22,7 +22,7 @@ router.post("/", async (req, res) => {
 });
 
 router.get("/", async (req, res) => {
-  getAllVehicles(req.query.page,JSON.parse(req.query.sortBy),req.query.showing)
+  getAllVehicles(req.query.page,req.query.sortBy,req.query.showing)
     .then((result) => res.status(result.status).send(result))
     .catch((error) => {
       sendErrorResp(error, req, res);

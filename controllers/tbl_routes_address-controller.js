@@ -45,7 +45,9 @@ const getAllRoutesAddresses = async () => {
 
 const getRouteAddress = async (id) => {
   try {
-    let routeAddress = await tbl_route_addresses.findByPk(id)
+    let routeAddress = await tbl_route_addresses.findAll({
+      where: { route_id: id },
+    });
     if(!route){
       return{
         status: 400,
