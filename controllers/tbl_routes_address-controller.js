@@ -2,8 +2,28 @@ const { tbl_route_addresses } = require("../models");
 const log = require("../utils/logger");
 
 const createRouteAddress = async (body) => {
+  
   try {
-    let createdRouteAddress = await tbl_routes.create(body)
+    if(body.length == 0){
+      return{
+        status: 400,
+        message: "No route address found",
+      }
+    }
+    // find tbl_route_addresses by route_id
+    let routeAddress = await tbl_route_addresses.findAll({
+      where: { route_id: body[0].route_id },
+    })
+
+    if(routeAddress.length > 0){
+      // delete all route addresses
+      await tbl_route_addresses.destroy({
+        where: { route_id: body[0].route_id },
+      })
+    }
+    // create new route addresses
+
+    let createdRouteAddress = await tbl_route_addresses.bulkCreate(body);
     return{
       status: 200,
       message: "Route Address created successfully",

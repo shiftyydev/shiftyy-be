@@ -2,7 +2,7 @@
 const express = require("express");
 const loginController = require("../controllers/login-controller");
 const {
-     createRouteAdress,
+  createRouteAddress,
       getAllRoutesAdresses,
        getRouteAdress, updateRouteAdress,
         deleteRouteAddress } = require("../controllers/tbl_routes_address-controller");
@@ -12,7 +12,7 @@ const db = require("../models");
 const { sendErrorResp } = require("../utils/common-utils");
 
 router.post("/", async (req, res) => {
-  createRouteAdress(req.body)
+  createRouteAddress(req.body)
     .then((result) => res.status(result.status).send(result))
     .catch((error) => {
       sendErrorResp(error, req, res);
