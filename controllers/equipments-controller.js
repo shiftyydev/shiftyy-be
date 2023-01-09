@@ -26,7 +26,7 @@ try{
 let equipment = await equipments.findAll({
   limit: 10000,
   offset: page || 1 * 10000,
-  attributes: ['id','Latitude','Longitude','AddressLine1','AddressLine2','ContactEmail','Country','Usage','IsPayAtLocation','IsMembershipRequired','IsAccessKeyRequired','IsPrivateIndividual','Connection1_Type','Voltage','Amps','PowerKW']
+  attributes: ['id','Latitude','Longitude','AddressLine1','ContactEmail','Country','StateOrProvince','Town','Postcode','Usage','ContactTelephone1','IsMembershipRequired','IsAccessKeyRequired','IsPrivateIndividual','Connection1_Type','Voltage','Amps','PowerKW','AccessComments','DateLastStatusUpdate','Operator']
 });
 if(!equipment){
   return{
