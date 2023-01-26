@@ -1,4 +1,5 @@
-const {chargingstations} = require( '../models');
+const { Op } = require('sequelize');
+const {chargingstations,equipments} = require( '../models');
 const log = require("../utils/logger");
 
 
@@ -168,6 +169,60 @@ const getDistinctChargingStationCountries = async() => {
 }
 
 
+const getStationDetailsByCoordinates = async (lats, lngs) => {
+    try{
+
+        const lat = parseFloat(lats)
+        const lng = parseFloat(lngs)
+
+        // ST_WITHIN(POINT(1, 1), ST_BUFFER(POINT(0, 0), 1.5)) LIMIT 1;
+
+        let chargingStation = await chargingstations.findOne({
+            where: {
+                [Op.and]: [
+                    {Latitude: {[Op.between]: [lat - 0.01, lat + 0.01]}},
+                    {Longitude: {[Op.between]: [lng - 0.01, lng + 0.01]}}
+                ]
+            }
+        })
+
+        let equipment = await equipments.findOne({
+            where: {
+                [Op.and]: [
+                    {Latitude: {[Op.between]: [lat - 0.01, lat + 0.01]}},
+                    {Longitude: {[Op.between]: [lng - 0.01, lng + 0.01]}}
+                ]
+
+            }
+        })
+
+        if(!chargingStation){
+            return{
+                status: 400,
+                message: "No charging station found"
+            }
+        }else{
+            return{
+                status: 200,
+                message: "Charging station found",
+                data : {
+                    ...chargingStation.dataValues,
+                    ...equipment.dataValues
+                }
+            }
+        }
+    }catch(error){
+        log.info(error)
+        return {
+            status: 500,
+            message: "Something went wrong",
+            };
+    }
+}
+
+        
+
+
     module.exports ={
     createChargingStation,
     getAllChargingStations,
@@ -175,5 +230,6 @@ const getDistinctChargingStationCountries = async() => {
     updateChargingStation,
     deleteChargingStation,
     getAllChargingStationsTotalPages,
-    getDistinctChargingStationCountries
+    getDistinctChargingStationCountries,
+    getStationDetailsByCoordinates
 }

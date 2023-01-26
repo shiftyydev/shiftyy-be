@@ -11,6 +11,11 @@ app.use(bodyParser);
 const cors = require("cors");
 app.use(cors());
 
+const db = require("./models").sequelize.sync({ force: false, alter: true }).then(() => {
+  console.log('Resync Db');
+});
+
+
 // routes
 const routes = require("./routes");
 app.use("/api", routes);

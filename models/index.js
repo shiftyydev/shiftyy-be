@@ -14,7 +14,8 @@ let sequelize = new Sequelize({
   password: `${process.env.DB_PASSWORD}`,
   database: `${process.env.DB}`,
   host: `${process.env.DB_HOST}`,
-  dialect: 'postgres'
+  dialect: 'postgres',
+  // logging: false
 });
 
 
@@ -40,8 +41,5 @@ try {
 db.sequelize = sequelize;
 db.Sequelize = Sequelize;
 
-db.sequelize.sync({ force: false, alter: true }).then(() => {
-  console.log('Resync Db');
-});
 
 module.exports = db;

@@ -20,6 +20,7 @@ const createVehicle = async  (body) => {
 
 const getAllVehicles = async (page=1,sortBy=[['id',"ASC"]],showing=10) => {
   try {
+    
     let vehicle = await vehicles.findAll({
       limit: showing,
       offset: page * showing,

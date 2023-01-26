@@ -3,8 +3,7 @@ const express = require("express");
 const loginController = require("../controllers/login-controller");
 const {
     createChargingStation,
-    getAllChargingStations,
-    getChargingStation,
+    getStationDetailsByCoordinates,
     updateChargingStation,
     deleteChargingStation,
     getAllChargingStationsTotalPages,
@@ -27,7 +26,7 @@ router.post("/", async (req, res) => {
 
 
 router.get("/", async (req, res) => {
-  getAllChargingStations(req.query.page)
+  getStationDetailsByCoordinates(req.query.lat, req.query.lng)
     .then((result) => res.status(result.status).send(result))
     .catch((error) => {
       sendErrorResp(error, req, res);
