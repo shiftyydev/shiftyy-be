@@ -1,9 +1,12 @@
 const { tbl_routes,tbl_route_addresses } = require("../models");
 const log = require("../utils/logger");
 
-const createRoute = async (body) => {
+const createRoute = async (body,userid) => {
   try {
-    let route = await tbl_routes.create(body);
+    let route = await tbl_routes.create({
+      ...body,
+      user_id: userid
+    });
     return {
       status: 200,
       message: "Route created successfully",
@@ -18,12 +21,15 @@ const createRoute = async (body) => {
   }
 };
 
-const getAllRoutes = async (page=0,sortBy=[['id',"DESC"]],showing=10) => { // as {"id":25,"name":"HO1V","min":"25","max":"55"}[]
+const getAllRoutes = async (page=0,sortBy=[['id',"DESC"]],showing=10,userid) => {
   try {
     let routes = await tbl_routes.findAll({
       limit: showing,
       offset: page * showing,
-      order: sortBy 
+      order: sortBy,
+      where : {
+        user_id : userid
+      }
     });
 
     if (!routes) {
@@ -46,7 +52,7 @@ const getAllRoutes = async (page=0,sortBy=[['id',"DESC"]],showing=10) => { // as
   }
 };
 
-const getAllRoutesWithAddresses = async () => {
+const getAllRoutesWithAddresses = async (userid) => {
   try {
     let routes = await tbl_routes.findAll({
       include: [
@@ -55,6 +61,9 @@ const getAllRoutesWithAddresses = async () => {
           as:'addresses'
         },
       ],
+      where : {
+        user_id : userid
+      }
     });
 
     if (!routes) {
@@ -79,10 +88,14 @@ const getAllRoutesWithAddresses = async () => {
 
 
 
-const getRoutesInfo = async () => {
+const getRoutesInfo = async (userid) => {
   try {
     // return total routes count
-    let route = await tbl_routes.count();
+    let route = await tbl_routes.count({
+      where : {
+        user_id : userid
+      }
+    });
     if (!route) {
       return {
         status: 400,

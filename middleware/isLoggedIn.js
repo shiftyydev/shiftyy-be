@@ -20,7 +20,7 @@ const isLoggedIn = (req, res, next) => {
       } else if (!decoded) {
         res.status(403).send("Unauthorized user");
       } else {
-        req.user = decoded;
+        req.user = decoded.dataValues;
         next();
       }
     });

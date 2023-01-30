@@ -19,6 +19,14 @@ module.exports = function(sequelize, DataTypes) {
     max: {
       type: DataTypes.DECIMAL,
       allowNull: true
+    },
+      user_id: {
+        type: DataTypes.INTEGER,
+        allowNull: true,
+        references: {
+          model: 'users',
+          key: 'id'
+        }
     }
   }, {
     sequelize,

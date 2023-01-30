@@ -6,10 +6,10 @@ const { returnJWT } = require("../middleware/jwt-service");
 const bcrypt = require("bcrypt");
 const { Op } = require("sequelize");
 
-const createUser = async (body) => {
+const createUser = async (body,userId) => {
   try {
     let hashedPass = await hashPassword(body.password);
-    let createdUser = await users.create({ ...body, password: hashedPass });
+    let createdUser = await users.create({ ...body, password: hashedPass, childOf: userId });
     return {
       status: 200,
       message: "User created successfully",
@@ -96,22 +96,24 @@ const userLogin = async (credentials) => {
     if (!user) {
       return {
         status: 401,
-        message: "Invalid email or password!",
+        message: "Invalid email",
       };
     }
+    console.log(user.password,credentials.password);
     const isMatch = await bcrypt.compare(credentials.password, user.password);
     if (!isMatch) {
       return {
         status: 401,
-        message: "Invalid email or password!",
+        message: "Invalid password!",
       };
     }
-    if (!user.isAdmin) {
-      return {
-        status: 404,
-        message: "You do not have the permission to access this resource",
-      };
-    }
+    console.log(isMatch);
+    // if (!user.isAdmin) {
+    //   return {
+    //     status: 404,
+    //     message: "You do not have the permission to access this resource",
+    //   };
+    // }
 
     const jwtExpirey = 60 * 60 * 1000 * 30;
     const jwt = await returnJWT(user, jwtExpirey);
@@ -119,6 +121,9 @@ const userLogin = async (credentials) => {
     return {
       status: 200,
       message: "User login is valid.",
+      firstName: user.firstname,
+      lastName: user.lastname,
+      email: user.email,
       jwt: jwt,
     };
   } catch (error) {

@@ -11,7 +11,7 @@ const equipmentRoutes = require("./equipment-routes");
 const tblRoutesAddress_Routes = require("./tbl_routes_address-routes");
 const usaChargingPointRoutes = require("./usa_chargingpoints-route");
 const { isLoggedIn, blacklist } = require("../middleware/isLoggedIn");
-const { userLogin } = require("../controllers/user-controller");
+const { userLogin, createUser } = require("../controllers/user-controller");
 
 router.get("/auth", (req, res) => {
   // if user is logged in, send user data
@@ -71,11 +71,14 @@ router.get("/is-logged-in", isLoggedIn, (req, res) => {
     res.status(500).json("Something went wronge");
   }
 });
-// router.get("/users", (req, res) => {
-//   db.users.findAll().then((users) => {
-//     res.json(users);
-//   });
-// });
+router.post("/register", (req, res) => {
+  createUser(req.body)
+    .then((result) => res.status(result.status).send(result))
+    .catch((error) => {
+      log.info(error);
+    });
+});
+
 
 router.use("/routes", isLoggedIn, tblRoutes_Routes);
 router.use("/vehicles", isLoggedIn, vehicleRoutes);

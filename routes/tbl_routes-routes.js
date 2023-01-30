@@ -14,7 +14,7 @@ const db = require("../models");
 const { sendErrorResp } = require("../utils/common-utils");
 
 router.post("/", async (req, res) => {
-  createRoute(req.body)
+  createRoute(req.body,req.user.id)
     .then((result) => res.status(result.status).send(result))
     .catch((error) => {
       sendErrorResp(error, req, res);
@@ -23,7 +23,8 @@ router.post("/", async (req, res) => {
 
 
 router.get("/", async (req, res) => {
-  getAllRoutes(req.query.page,req.query.sortBy,req.query.showing)
+
+  getAllRoutes(req.query.page,req.query.sortBy,req.query.showing,req.user.id)
     .then((result) => res.status(result.status).send(result))
     .catch((error) => {
       sendErrorResp(error, req, res);
@@ -31,7 +32,7 @@ router.get("/", async (req, res) => {
 });
 
 router.get('/with-addresses', async (req, res) => {
-  getAllRoutesWithAddresses()
+  getAllRoutesWithAddresses(req.user.id)
     .then((result) => res.status(result.status).send(result))
     .catch((error) => {
       sendErrorResp(error, req, res);
@@ -39,7 +40,7 @@ router.get('/with-addresses', async (req, res) => {
 });
 
 router.get("/info", async (req, res) => {
-  getRoutesInfo()
+  getRoutesInfo(req.user.id)
   .then((result) => res.status(result.status).send(result))
     .catch((error) => {
       sendErrorResp(error, req, res);

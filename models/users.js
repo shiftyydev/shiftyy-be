@@ -71,6 +71,10 @@ module.exports = function (sequelize, DataTypes) {
           isIn: [["admin", "user"]],
         },
       },
+      childOf: {
+        type: DataTypes.INTEGER,
+        allowNull: true,
+      }
     },
     {
       sequelize,

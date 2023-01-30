@@ -15,7 +15,7 @@ const db = require("../models");
 const { sendErrorResp } = require("../utils/common-utils");
 
 router.post("/", async (req, res) => {
-  createUser(req.body)
+  createUser(req.body,req.user.id)
     .then((result) => res.status(result.status).send(result))
     .catch((error) => {
       sendErrorResp(error, req, res);
