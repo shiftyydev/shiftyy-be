@@ -6,6 +6,59 @@ const { returnJWT } = require("../middleware/jwt-service");
 const bcrypt = require("bcrypt");
 const { Op } = require("sequelize");
 
+const signUp = async (userData) => {
+  try {
+      // 1. Validate user data
+      if (!userData.email || !userData.password || !userData.firstname || !userData.lastname) {
+        return {
+            status: 400,
+            message: "Email, password, firstname, and lastname are required",
+        };
+    }
+
+      // 2. Check if user already exists
+      const existingUser = await users.findOne({
+          where: { email: userData.email },
+      });
+
+      if (existingUser) {
+          return {
+              status: 400,
+              message: "Email already registered",
+          };
+      }
+
+      // 3. Hash the password
+      const hashedPass = await hashPassword(userData.password);
+
+      // 4. Save the new user to the database
+      const newUser = await users.create({ 
+        firstname: userData.firstname,
+        lastname: userData.lastname,
+        email: userData.email, 
+        password: hashedPass,
+        roleid: 3,   // Set roleId to 3 as a user
+    });
+
+      return {
+        status: 201, // 201 means resource created
+        message: "User registered successfully",
+        user: {
+            id: newUser.id,
+            firstname: newUser.firstname,
+            lastname: newUser.lastname,
+            email: newUser.email,
+          },
+      };
+  } catch (error) {
+      log.info(error);
+      return {
+          status: 500,
+          message: "Something went wrong",
+      };
+  }
+};
+
 const createUser = async (body,userId) => {
   try {
     let hashedPass = await hashPassword(body.password);
@@ -99,7 +152,7 @@ const userLogin = async (credentials) => {
         message: "Invalid email",
       };
     }
-    console.log(user.password,credentials.password);
+
     const isMatch = await bcrypt.compare(credentials.password, user.password);
     if (!isMatch) {
       return {
@@ -183,7 +236,36 @@ const deleteUser = async (id) => {
   }
 };
 
+const getAllDrivers = async () => {
+  try {
+    let allDrivers = await users.findAll({
+      where : {
+        userType : 'driver'
+      },
+    });
+    if (!allDrivers) {
+      return {
+        status: 400,
+        message: "No Driver found",
+      };
+    } else {
+      return {
+        status: 200,
+        message: "Driver found",
+        drivers: allDrivers,
+      };
+    }
+  } catch (error) {
+    log.info(error);
+    return {
+      status: 500,
+      message: "Something went wrong",
+    };
+  }
+};
+
 module.exports = {
+  signUp,
   createUser,
   getAllUsers,
   getUsersInfo,
@@ -191,4 +273,5 @@ module.exports = {
   deleteUser,
   userLogin,
   userLogout,
+  getAllDrivers
 };

@@ -4,6 +4,7 @@ const fs = require('fs');
 const path = require('path');
 const Sequelize = require('sequelize');
 const process = require('process');
+const { hashPassword } = require('../middleware/isLoggedIn');
 const basename = path.basename(__filename);
 const env = process.env.NODE_ENV || 'development';
 const config = require(__dirname + '/../config/config.json')[env];
@@ -15,7 +16,7 @@ let sequelize = new Sequelize({
   database: `${process.env.DB}`,
   host: `${process.env.DB_HOST}`,
   dialect: 'postgres',
-  // logging: false
+  logging: false
 });
 
 
@@ -34,6 +35,10 @@ try {
     foreignKey: 'route_id',
     as: 'addresses'
   });
+  db.tbl_routes.belongsTo(db.users, {
+    foreignKey: 'creator_id',
+    as: 'users'
+  });
 } catch (e) {
   console.log(e);
 }
@@ -41,5 +46,38 @@ try {
 db.sequelize = sequelize;
 db.Sequelize = Sequelize;
 
+// Ensure the table and relationships have been set up
+sequelize.sync({ force: false, alter: true }).then(async () => {
+
+  const roles = ['super admin', 'admin', 'user', 'driver'];
+  await Promise.all(roles.map(async role => {
+      const existingRole = await db.user_roles.findOne({
+          where: { role_name: role }
+      });
+      if (!existingRole) {
+          await db.user_roles.create({ role_name: role });
+          console.log(`Added ${role} to the user_roles table.`);
+      }
+  })).catch(error => {
+      console.error('Error adding initial roles:', error);
+  })
+
+  // Check if the users table is empty
+  db.users.count().then(async count => {
+      if (count === 0) {
+          // Add users to the table if it's empty
+          db.users.bulkCreate([
+              { id: 1, email: 'superadmin@gmail.com', password: await hashPassword('Me@1234'),roleid : 1, isAdmin : true }
+          ])
+          console.log('Added initial users to the users table.');
+        }
+      
+          }).catch(error => {
+              console.error('Error adding initial users:', error);
+          });
+
+}).catch(error => {
+  console.error('Error syncing models:', error);
+});
 
 module.exports = db;

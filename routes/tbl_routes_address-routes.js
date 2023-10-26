@@ -3,9 +3,9 @@ const express = require("express");
 const loginController = require("../controllers/login-controller");
 const {
   createRouteAddress,
-      getAllRoutesAdresses,
-       getRouteAdress, updateRouteAdress,
-        deleteRouteAddress } = require("../controllers/tbl_routes_address-controller");
+  getAllRoutesAddresses,
+  getRouteAddress, updateRouteAddress,
+  deleteRouteAddress } = require("../controllers/tbl_routes_address-controller");
 const router = express.Router();
 // models
 const db = require("../models");
@@ -21,7 +21,7 @@ router.post("/", async (req, res) => {
 
 
 router.get("/", async (req, res) => {
-  getAllRoutesAdresses()
+  getAllRoutesAddresses()
     .then((result) => res.status(result.status).send(result))
     .catch((error) => {
       sendErrorResp(error, req, res);
@@ -29,7 +29,7 @@ router.get("/", async (req, res) => {
 });
 router.get("/:id", async (req, res) => {
   getRouteAdress(req.params.id)
-  .then((result) => res.status(result.status).send(result))
+    .then((result) => res.status(result.status).send(result))
     .catch((error) => {
       sendErrorResp(error, req, res);
     });
@@ -50,5 +50,27 @@ router.delete("/:id", async (req, res) => {
       sendErrorResp(error, req, res);
     });
 });
+
+router.post("/updateAddressPointStatus", async (req, res) => {
+  try {
+    let addressPoint = await db.tbl_route_addresses.findOne({
+      where: { id: req.body.id },
+    });
+    if (!addressPoint) {
+      return res.status(400).send("Address point not found");
+    }
+    addressPoint.status = req.body.status;
+    await db.tbl_route_addresses.update({
+      status: req.body.status,
+    }, {
+      where: { id: req.body.id },
+    })
+    return res.status(200).send("Address point status updated successfully");
+  }
+  catch (error) {
+    console.log(error);
+    return res.status(500).send("Something went wrong");
+  }
+})
 
 module.exports = router;

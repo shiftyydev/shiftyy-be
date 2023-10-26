@@ -43,7 +43,7 @@ const getAllRoutesAddresses = async () => {
   try {
     let routeAddresses = await tbl_route_addresses.findAll();
 
-    if (!routes) {
+    if (!routeAddresses) {
       return {
         status: 400,
         message: "No route address found",
@@ -132,6 +132,8 @@ const deleteRouteAddress = async (routeId) => {
       };
   }
 };
+
+
 
 module.exports = {
   createRouteAddress,

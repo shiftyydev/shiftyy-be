@@ -27,7 +27,15 @@ module.exports = function(sequelize, DataTypes) {
           model: 'users',
           key: 'id'
         }
-    }
+    },
+    optimizedRoute: {
+      type: DataTypes.JSON,
+      allowNull: true
+    },
+    assignedTo: { 
+      type: DataTypes.INTEGER,
+      allowNull: true
+    },
   }, {
     sequelize,
     tableName: 'tbl_routes',

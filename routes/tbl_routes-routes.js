@@ -47,7 +47,7 @@ router.get("/info", async (req, res) => {
     });
 });
 
-router.patch("/:id", async (req, res) => {
+router.post("/:id", async (req, res) => {
   updateRoute(req.params.id, req.body)
     .then((result) => res.status(result.status).send(result))
     .catch((error) => {
@@ -62,5 +62,64 @@ router.delete("/:id", async (req, res) => {
       sendErrorResp(error, req, res);
     });
 });
+
+router.patch("/addRouteJSON", async (req, res) => {
+  try {
+    let route = await db.tbl_routes.update({
+      optimizedRoute: req.body.route
+    },{
+      where: {
+        id: req.body.routeId
+      }
+    })
+    res.status(200).send(route);
+  } catch (error) {
+    sendErrorResp(error, req, res);
+  }
+})
+
+
+
+router.get('/routeDriver/:routeId', async (req, res) => {
+  try {
+    let route = await db.tbl_routes.findOne({
+      where: {
+        id: req.params.routeId
+      }
+    })
+    let driver = await db.users.findOne({
+      where: {
+        id: route.assignedTo
+      }
+    })
+    res.status(200).send(driver);
+  } catch (error) {
+    sendErrorResp(error, req, res);
+  }
+})
+  
+  router.get('/routeByDriver', async (req, res) => {
+    const driverID = req.user.id
+    
+    try {
+      let route = await db.tbl_routes.findOne({
+        where: {
+          assignedTo: driverID
+        }
+      })
+      let routeAddresses = await db.tbl_route_addresses.findAll({
+        where: {
+          route_id: route.id,
+          status: {
+            [db.Sequelize.Op.or]: ['pending', 'in-progress']
+          }
+        }
+      })
+      res.status(200).send({routeAddresses, route});
+    } catch (error) {
+      sendErrorResp(error, req, res);
+    }
+  })
+
 
 module.exports = router;

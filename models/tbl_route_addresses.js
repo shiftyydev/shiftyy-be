@@ -43,7 +43,15 @@ module.exports = function(sequelize, DataTypes) {
     route_id: {
       type: DataTypes.INTEGER,
       allowNull: true
-    }
+    },
+    status: {
+      type: DataTypes.STRING,
+      allowNull: true,
+      default: 'pending',
+      validate: {
+        isIn: [['pending', 'in-progress', 'in-review', 'completed', 'rejected', 'unassigned']]
+      }
+    },
   }, {
     sequelize,
     tableName: 'tbl_route_addresses',

@@ -8,6 +8,7 @@ const {
     updateUser,
     deleteUser,
     userLogin,
+    getAllDrivers,
 } = require('../controllers/user-controller');
 const router = express.Router();
 // models
@@ -33,6 +34,13 @@ router.post("/login", async (req, res) => {
 
 router.get("/", async (req, res) => {
   getAllUsers(req.query.page,JSON.parse(req.query.sortBy),req.query.showing)
+    .then((result) => res.status(result.status).send(result))
+    .catch((error) => {
+      sendErrorResp(error, req, res);
+    });
+});
+router.get("/drivers", async (req, res) => {
+  getAllDrivers()
     .then((result) => res.status(result.status).send(result))
     .catch((error) => {
       sendErrorResp(error, req, res);

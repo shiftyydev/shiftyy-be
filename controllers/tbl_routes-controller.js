@@ -1,4 +1,4 @@
-const { tbl_routes,tbl_route_addresses } = require("../models");
+const { tbl_routes,tbl_route_addresses,users } = require("../models");
 const log = require("../utils/logger");
 
 const createRoute = async (body,userid) => {
@@ -32,6 +32,18 @@ const getAllRoutes = async (page=0,sortBy=[['id',"DESC"]],showing=10,userid) => 
       }
     });
 
+    routes.forEach(async (route) => {
+      if(route.dataValues.assignedTo){
+        let user = await users.findOne({
+          where : {
+            id : route.dataValues.assignedTo
+          }
+        });
+        route.dataValues.driver = user.dataValues;
+      }
+    });
+
+  
     if (!routes) {
       return {
         status: 400,
@@ -120,6 +132,15 @@ const updateRoute = async (routeId, body) => {
       where: { id: routeId },
       returning: true,
     });
+    if(body.assignedTo){
+      await tbl_route_addresses.update({
+        status : "pending"
+      },{
+        where : {
+          route_id : routeId
+        }
+      })
+    }
     return {
       status: 200,
       message: "Route updated successfully",
