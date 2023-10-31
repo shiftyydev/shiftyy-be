@@ -1,3 +1,4 @@
+const { Op } = require("sequelize");
 const { tbl_route_addresses } = require("../models");
 const log = require("../utils/logger");
 
@@ -41,7 +42,14 @@ const createRouteAddress = async (body) => {
 
 const getAllRoutesAddresses = async () => {
   try {
-    let routeAddresses = await tbl_route_addresses.findAll();
+    let routeAddresses = await tbl_route_addresses.findAll({
+      // where addresss does not include undefined word in string
+      where: {
+        complete_address: {
+          [Op.notLike]: "%undefined%",
+        },
+      },
+    });
 
     if (!routeAddresses) {
       return {
