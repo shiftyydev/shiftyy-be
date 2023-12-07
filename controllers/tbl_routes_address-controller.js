@@ -1,5 +1,5 @@
 const { Op } = require("sequelize");
-const { tbl_route_addresses } = require("../models");
+const { tbl_route_addresses,users,tbl_routes } = require("../models");
 const log = require("../utils/logger");
 
 const createRouteAddress = async (body) => {
@@ -40,7 +40,34 @@ const createRouteAddress = async (body) => {
    }
 };
 
-const getAllRoutesAddresses = async () => {
+const getAllRoutesAddresses = async (user) => {
+
+  let routeIds = [];
+
+  if(user.userType == "manager"){
+    let companyAdmin = await users.findOne({
+      where : {
+        id : user.id
+      }
+    });
+    if(!companyAdmin) return {
+      status: 400,
+      message: "No routes found",
+    };
+    if(companyAdmin.dataValues.childOf){
+      user.id = companyAdmin.dataValues.childOf;
+    }
+    let companyRoutes = await tbl_routes.findAll({
+      where : {
+        user_id : user.id
+      }
+    });
+    companyRoutes.forEach(route => {
+      routeIds.push(route.dataValues.id);
+    });
+  }
+
+
   try {
     let routeAddresses = await tbl_route_addresses.findAll({
       // where addresss does not include undefined word in string
@@ -48,6 +75,9 @@ const getAllRoutesAddresses = async () => {
         complete_address: {
           [Op.notLike]: "%undefined%",
         },
+        [user.userType == "manager" ? 'route_id' : 'geom']: user.userType == "manager" ? {
+          [Op.in] : routeIds
+        } : null
       },
     });
 

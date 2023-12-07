@@ -1,7 +1,7 @@
 const log = require("../utils/logger");
 const { fromPairs } = require("lodash");
 const { hashPassword, isLoggedIn } = require("../middleware/isLoggedIn.js");
-const { users } = require("../models");
+const { users,user_roles,tbl_user_companies,companies } = require("../models");
 const { returnJWT } = require("../middleware/jwt-service");
 const bcrypt = require("bcrypt");
 const { Op } = require("sequelize");
@@ -59,10 +59,25 @@ const signUp = async (userData) => {
   }
 };
 
-const createUser = async (body,userId) => {
+const createUser = async (body,user) => {
+
+
   try {
     let hashedPass = await hashPassword(body.password);
-    let createdUser = await users.create({ ...body, password: hashedPass, childOf: userId });
+    let createdUser = await users.create({ ...body, password: hashedPass, childOf: user.childOf || user.id });
+
+    let company = await tbl_user_companies.findOne({
+      where: { userId: user.id }
+    });
+
+    if (company) {
+      await tbl_user_companies.create({
+        companyId: company.companyId,
+        userId: createdUser.id
+      });
+    }
+
+
     return {
       status: 200,
       message: "User created successfully",
@@ -77,7 +92,48 @@ const createUser = async (body,userId) => {
   }
 };
 
-const getAllUsers = async (page=1,sortBy=[['id',"ASC"]],showing=10) => {
+const getAllUsers = async (page=1,sortBy=[['id',"ASC"]],showing=10,user) => {
+
+  let company = await tbl_user_companies.findOne({
+    where: { userId: user.id }
+  });
+
+  if(user.userType == 'manager'){
+
+    const companydata = await companies.findOne({
+      where: { id: company.companyId },
+      include: [
+        {
+          model: users,
+          as: 'users'
+        }
+      ],
+    });
+
+
+    if (!companydata) {
+      return {
+        status: 400,
+        message: "No Company found",
+      };
+    }
+
+    let allUsers = companydata.users;
+
+    if (!allUsers) {
+      return {
+        status: 400,
+        message: "No User found",
+      };
+    }
+
+    return {
+      status: 200,
+      message: "User found",
+      users: allUsers,
+    };
+  }
+
   try {
     let allUsers = await users.findAll({
       where : {
@@ -213,13 +269,23 @@ const updateUser = async (id, body) => {
   }
 };
 
-const deleteUser = async (id) => {
+const deleteUser = async (id,user) => {
+
+
   try {
-    const deletedUser = await users.destroy({ where: { id: id } });
+    const deletedUser = await users.destroy({ where: { 
+      [Op.and] : [
+        { id: id },
+        { childOf: {
+          [Op.not] : null
+        }
+      }
+      ]
+    } });
     if (deletedUser == 0) {
       return {
         status: 400,
-        message: "Vehicle not found",
+        message: "User Cannot be deleted",
       };
     } else {
       return {
@@ -236,13 +302,31 @@ const deleteUser = async (id) => {
   }
 };
 
-const getAllDrivers = async () => {
+const getAllDrivers = async (user) => {
+  console.log(user.userType);
+  if(user.userType == "manager"){
+    let companyAdmin = await users.findOne({
+      where : {
+        id : user.id
+      }
+    });
+    if(!companyAdmin) return {
+      status: 400,
+      message: "No routes found",
+    };
+    if(companyAdmin.dataValues.childOf){
+      user.id = companyAdmin.dataValues.childOf;
+    }
+  }
   try {
+  
     let allDrivers = await users.findAll({
       where : {
-        userType : 'driver'
+        userType : 'driver',
+        [user.userType == 'manager' ? 'childOf' : 'activestatus'] : user.userType == 'manager' ? user.id : null
       },
     });
+
     if (!allDrivers) {
       return {
         status: 400,
@@ -263,6 +347,39 @@ const getAllDrivers = async () => {
     };
   }
 };
+
+// add user to role
+const addUserToRole = async (userId, roleId) => {
+  try {
+    let user = await users.findOne({
+      where: {
+        id: userId,
+      },
+    });
+    if (!user) {
+      return {
+        status: 400,
+        message: "User not found",
+      };
+    }
+    
+    let userRole = await user_roles.create({
+      userId: userId,
+      roleId: roleId,
+    });
+    return {
+      status: 200,
+      message: "User added to role successfully",
+      userRole: userRole,
+    };
+  } catch (error) {
+    log.info(error);
+    return {
+      status: 500,
+      message: "Something went wrong",
+    };
+  }
+}
 
 module.exports = {
   signUp,

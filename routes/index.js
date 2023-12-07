@@ -95,7 +95,8 @@ router.use("/users", isLoggedIn, userRoutes);
 router.use("/equipments", isLoggedIn, equipmentRoutes);
 router.use("/routes-address", isLoggedIn, tblRoutesAddress_Routes);
 router.use("/charging-point", isLoggedIn, usaChargingPointRoutes);
-// const setup = (app) => {
+router.use("/companies", isLoggedIn, require("./companies-routes"));
+// const setup = (app) => { 
 //   if (app) {
 //     log.info("Setting up index...");
 //     index(app);

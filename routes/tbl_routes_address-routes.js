@@ -21,7 +21,7 @@ router.post("/", async (req, res) => {
 
 
 router.get("/", async (req, res) => {
-  getAllRoutesAddresses()
+  getAllRoutesAddresses(req.user)
     .then((result) => res.status(result.status).send(result))
     .catch((error) => {
       sendErrorResp(error, req, res);

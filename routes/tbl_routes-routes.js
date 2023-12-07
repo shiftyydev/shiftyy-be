@@ -24,7 +24,7 @@ router.post("/", async (req, res) => {
 
 router.get("/", async (req, res) => {
 
-  getAllRoutes(req.query.page,req.query.sortBy,req.query.showing,req.user.id)
+  getAllRoutes(req.query.page,req.query.sortBy,req.query.showing,req.user)
     .then((result) => res.status(result.status).send(result))
     .catch((error) => {
       sendErrorResp(error, req, res);

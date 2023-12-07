@@ -2,23 +2,26 @@ require("dotenv").config();
 const express = require("express");
 const app = express();
 const PORT = process.env.APP_PORT || 5001;
-
+const http = require("http");
+const server = http.createServer(app);
+const cors = require("cors");
+const db = require("./models")
+// routes
+const routes = require("./routes");
+const { initSocket } = require("./utils/socket");
+initSocket(server);
 // body parser
 const bodyParser = express.json();
 app.use(bodyParser);
 
 // cors
-const cors = require("cors");
 app.use(cors());
 
-const db = require("./models")
 
 
-// routes
-const routes = require("./routes");
 app.use("/api", routes);
 
 // listen
-app.listen(PORT, () => {
+server.listen(PORT, () => {
   console.log(` app listening at http://localhost:${PORT}`);
 });

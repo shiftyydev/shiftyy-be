@@ -16,7 +16,7 @@ const db = require("../models");
 const { sendErrorResp } = require("../utils/common-utils");
 
 router.post("/", async (req, res) => {
-  createUser(req.body,req.user.id)
+  createUser(req.body,req.user)
     .then((result) => res.status(result.status).send(result))
     .catch((error) => {
       sendErrorResp(error, req, res);
@@ -33,14 +33,14 @@ router.post("/login", async (req, res) => {
 
 
 router.get("/", async (req, res) => {
-  getAllUsers(req.query.page,JSON.parse(req.query.sortBy),req.query.showing)
+  getAllUsers(req.query.page,JSON.parse(req.query.sortBy),req.query.showing,req.user)
     .then((result) => res.status(result.status).send(result))
     .catch((error) => {
       sendErrorResp(error, req, res);
     });
 });
 router.get("/drivers", async (req, res) => {
-  getAllDrivers()
+  getAllDrivers(req.user)
     .then((result) => res.status(result.status).send(result))
     .catch((error) => {
       sendErrorResp(error, req, res);
@@ -63,7 +63,7 @@ router.patch("/:id", async (req, res) => {
 });
 
 router.delete("/:id", async (req, res) => {
-  deleteUser(req.params.id)
+  deleteUser(req.params.id,req.user)
     .then((result) => res.status(result.status).send(result))
     .catch((error) => {
       sendErrorResp(error, req, res);

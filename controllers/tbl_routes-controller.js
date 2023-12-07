@@ -21,15 +21,37 @@ const createRoute = async (body,userid) => {
   }
 };
 
-const getAllRoutes = async (page=0,sortBy=[['id',"DESC"]],showing=10,userid) => {
+const getAllRoutes = async (page=0,sortBy=[['id',"DESC"]],showing=10,user) => {
+
+  if(user.userType == "manager"){
+    let companyAdmin = await users.findOne({
+      where : {
+        id : user.id
+      },
+    });
+    if(!companyAdmin) return {
+      status: 400,
+      message: "No routes found",
+    };
+    if(companyAdmin.dataValues.childOf){
+      user.id = companyAdmin.dataValues.childOf;
+    }
+  }
+
   try {
     let routes = await tbl_routes.findAll({
       limit: showing,
       offset: page * showing,
       order: sortBy,
       where : {
-        user_id : userid
-      }
+        [user.userType == "manager" ? "user_id" : "creator_id"] : user.userType == "manager" ? user.id : null
+      },
+      include: [
+        {
+          model: tbl_route_addresses,
+          as:'addresses'
+        },
+      ],
     });
 
     routes.forEach(async (route) => {
@@ -39,7 +61,7 @@ const getAllRoutes = async (page=0,sortBy=[['id',"DESC"]],showing=10,userid) => 
             id : route.dataValues.assignedTo
           }
         });
-        route.dataValues.driver = user.dataValues;
+        if(user) route.dataValues.driver = user.dataValues;
       }
     });
 
