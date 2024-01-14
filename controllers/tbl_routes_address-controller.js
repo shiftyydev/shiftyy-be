@@ -41,7 +41,7 @@ const createRouteAddress = async (body) => {
 };
 
 const getAllRoutesAddresses = async (user) => {
-
+  
   let routeIds = [];
 
   if(user.userType == "manager"){

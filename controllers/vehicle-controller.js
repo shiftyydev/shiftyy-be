@@ -1,9 +1,12 @@
 const { vehicles } = require("../models");
 const log = require("../utils/logger");
 
-const createVehicle = async  (body) => {
+const createVehicle = async  (body,user) => {
  try{
-  let vehicle = await vehicles.create(body);
+  let vehicle = await vehicles.create({
+    ...body,
+    child_of: user.childOf || user.id,
+  });
  return{
   status: 200,
   message: "Vehicle created Successfully",
@@ -18,13 +21,14 @@ const createVehicle = async  (body) => {
  }
 };
 
-const getAllVehicles = async (page=1,sortBy=[['id',"ASC"]],showing=10) => {
+const getAllVehicles = async (page=1,sortBy=[['id',"ASC"]],showing=10,user) => {
   try {
     
     let vehicle = await vehicles.findAll({
       limit: showing,
       offset: page * showing,
-      order: sortBy 
+      order: sortBy ,
+     where : user.isAdmin ? {} : { child_of: user.childOf || user.id },
     });
 
     if (!vehicle) {
@@ -73,9 +77,11 @@ const getVehicle = async (id) => {
 
 
 
-const getVehiclesInfo = async () => {
+const getVehiclesInfo = async (user) => {
   try {
-    let vehiclesCount = await vehicles.count();
+    let vehiclesCount = await vehicles.count({
+      where: { child_of: user.childOf || user.id },
+    });
     if (!vehiclesCount) {
       return {
         status: 200,
@@ -148,11 +154,12 @@ const deleteVehicle = async (vehicleId) => {
   }
 };
 
-const getDistinctVehicles = async () => {
+const getDistinctVehicles = async (user) => {
   try {
     let vehicle = await vehicles.findAll({
       attributes: ["name"],
       group: ["name"],
+      where : { child_of: user.childOf || user.id },
     });
 
     if (!vehicle) {

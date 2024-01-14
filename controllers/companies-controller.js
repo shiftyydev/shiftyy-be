@@ -37,14 +37,18 @@ const createCompany = async (body) => {
     }
 };
 
-const getAllCompanies = async (page = 1, sortBy = [['id', "ASC"]], showing = 10) => {
+const getAllCompanies = async (page = 1, sortBy = undefined, showing = 10) => {
     try {
-        const company = await companies.findAll({
+       
+        const company = await(sortBy ? companies.findAll({
             limit: showing,
             offset: page * showing,
-            order: sortBy,
-            attributes: ['id', 'name', 'email', 'phone', 'address', 'city', 'state', 'country', 'zipcode', 'activestatus']
-        });
+            order: JSON.parse(sortBy),
+            attributes: ['id', 'name', 'email','logo', 'phone', 'address', 'city', 'state', 'country', 'zipcode', 'activestatus']
+        }) : companies.findAll({
+            attributes: ['id', 'name', 'email','logo']
+        }));
+
 
         if (!company.length) {
             return {
@@ -162,9 +166,10 @@ const getCompaniesInfo = async () => {
     }
 };
 
-const createCompanyWithManager = async (body) => {
+const createCompanyWithManager = async (file,body) => {
     try {
 
+        console.log(file);
 
         if (!body['Company Name'] || !body['Company Email']) {
             return {
@@ -172,7 +177,6 @@ const createCompanyWithManager = async (body) => {
                 message: "Company name and email are required"
             };
         }
-
         if (!body['Manager First Name'] || !body['Manager Last Name'] || !body.email || !body.password) {
             return {
                 status: 400,
@@ -214,11 +218,12 @@ const createCompanyWithManager = async (body) => {
             email: body.email,
             password: password,
             userType: "manager",
-            roleid: 1
+            roleid: 1,
+            logo : file ? file.path: null
         });
 
         const createdCompany = await companies.create({
-            name: body['Company Name'], email: body['Company Email'], managerId: user.id
+            name: body['Company Name'], email: body['Company Email'], managerId: user.id,logo: file ? file.path: null
         });
 
 

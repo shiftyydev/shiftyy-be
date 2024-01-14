@@ -18,25 +18,25 @@ const initSocket = (server) => {
         }
 
         // create room with company name or super admin
-        if (decoded.dataValues.isAdmin) {
+        if (decoded.isAdmin) {
             socket.join("super admin");
         } else {
             
-            if (decoded.dataValues.userType === "manager") {
+            if (decoded.userType === "manager") {
                 console.log("company admin joined");
-                socket.join(decoded.dataValues.id);
+                socket.join(decoded.id);
             }
-            if (decoded.dataValues.userType === "driver") {
+            if (decoded.userType === "driver") {
                 console.log("driver joined");
-                socket.join(decoded.dataValues.childOf);
+                socket.join(decoded.childOf);
             }
 
             socket.on("update-driver-location", (data) => {
                
                
-                const id = decoded.dataValues.id;
+                const id = decoded.id;
                
-                socket.broadcast.to(decoded.dataValues.childOf).emit("truckUpdate", { ...data, id });
+                socket.broadcast.to(decoded.childOf).emit("truckUpdate", { ...data, id });
                 socket.broadcast.to("super admin").emit("truckUpdate", { ...data, id });
             });
 

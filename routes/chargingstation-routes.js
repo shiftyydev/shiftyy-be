@@ -43,7 +43,7 @@ router.get("/pages", async (req, res) => {
 });
 
 router.get("/distinct", async (req, res) => {
- const reqs =  [getDistinctChargingStationCountries(),getDistinctEquipments(),getDistinctVehicles()]
+ const reqs =  [getDistinctChargingStationCountries(),getDistinctEquipments(),getDistinctVehicles(req?.user)]
   Promise.all(reqs)
     .then((result) => res.status(200).send(result))
     .catch((error) => {

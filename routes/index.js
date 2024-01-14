@@ -58,17 +58,19 @@ router.get("/is-logged-in", isLoggedIn, (req, res) => {
     if (!decoded) {
       res.status(403).send("Unauthorized user");
     }
-   
+
+  
+    
     const obj = {
-      firstName: decoded.dataValues.firstname,
-      lastName: decoded.dataValues.lastname,
-      email: decoded.dataValues.email,
+      firstName:  decoded?.name,
+      lastName:  decoded?.name,
+      email:  decoded?.email,
       token,
     };
     res.status(200).send(obj);
   } catch (error) {
     log.info(error);
-    res.status(500).json("Something went wronge");
+    res.status(500).json("Something went wrong");
   }
 });
 router.post("/register", (req, res) => {

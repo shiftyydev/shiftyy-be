@@ -14,7 +14,7 @@ const db = require("../models");
 const { sendErrorResp } = require("../utils/common-utils");
 
 router.post("/", async (req, res) => {
-  createVehicle(req.body)
+  createVehicle(req.body,req?.user)
     .then((result) => res.status(result.status).send(result))
     .catch((error) => {
       sendErrorResp(error, req, res);
@@ -22,7 +22,7 @@ router.post("/", async (req, res) => {
 });
 
 router.get("/", async (req, res) => {
-  getAllVehicles(req.query.page,req.query.sortBy,req.query.showing)
+  getAllVehicles(req.query.page,req.query.sortBy,req.query.showing,req?.user)
     .then((result) => res.status(result.status).send(result))
     .catch((error) => {
       sendErrorResp(error, req, res);
@@ -31,7 +31,7 @@ router.get("/", async (req, res) => {
 
 
 router.get("/info", async (req, res) => {
-  getVehiclesInfo()
+  getVehiclesInfo(req?.user)
     .then((result) => res.status(result.status).send(result))
     .catch((error) => {
       sendErrorResp(error, req, res);

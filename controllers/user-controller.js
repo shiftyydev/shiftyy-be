@@ -92,7 +92,7 @@ const createUser = async (body,user) => {
   }
 };
 
-const getAllUsers = async (page=1,sortBy=[['id',"ASC"]],showing=10,user) => {
+const getAllUsers = async (page=1,sortBy=[['id',"ASC"]],showing=10,user,companyquery) => {
 
   let company = await tbl_user_companies.findOne({
     where: { userId: user.id }
@@ -135,14 +135,29 @@ const getAllUsers = async (page=1,sortBy=[['id',"ASC"]],showing=10,user) => {
   }
 
   try {
-    let allUsers = await users.findAll({
-      where : {
-        isAdmin : { [Op.not] : true }
-      },
-      limit: showing,
-      offset: page * showing,
-      order: sortBy 
-    });
+    // let allUsers = await users.findAll({
+    //   where : {
+    //     isAdmin : { [Op.not] : true },
+    //   },
+    //   limit: showing,
+    //   offset: page * showing,
+    //   order: sortBy 
+    // });
+
+    let allUsers = await companies.findOne({
+      where: { 
+        name : companyquery 
+       },
+      include: [
+        {
+          model: users,
+          as: 'users',
+        }
+      ],
+    })
+
+    allUsers = allUsers.users;
+
     if (!allUsers) {
       return {
         status: 400,
@@ -225,7 +240,11 @@ const userLogin = async (credentials) => {
     // }
 
     const jwtExpirey = 60 * 60 * 1000 * 30;
-    const jwt = await returnJWT(user, jwtExpirey);
+    let userData = user.dataValues;
+    delete userData.password;
+    delete userData.oldPassword;
+    delete userData.repassword
+    const jwt = await returnJWT(userData, jwtExpirey);
     //   let session = await createSession(user.id);
     return {
       status: 200,

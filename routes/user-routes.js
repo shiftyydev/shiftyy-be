@@ -33,7 +33,7 @@ router.post("/login", async (req, res) => {
 
 
 router.get("/", async (req, res) => {
-  getAllUsers(req.query.page,JSON.parse(req.query.sortBy),req.query.showing,req.user)
+  getAllUsers(req.query.page,JSON.parse(req.query.sortBy),req.query.showing,req.user,req.query.company)
     .then((result) => res.status(result.status).send(result))
     .catch((error) => {
       sendErrorResp(error, req, res);

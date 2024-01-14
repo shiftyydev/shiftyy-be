@@ -12,10 +12,11 @@ const {
   getCompaniesInfo,
   createCompanyWithManager
 } = require("../controllers/companies-controller");
+const { upload } = require("../middleware/multer");
 
 // Route to create a company
-router.post("/", async (req, res) => {
-  createCompanyWithManager(req.body)
+router.post("/",upload.single('Company Logo') ,async (req, res) => {
+  createCompanyWithManager(req.file,req.body)
     .then((result) => res.status(result.status).send(result))
     .catch((error) => {
       sendErrorResp(error, req, res);
@@ -24,7 +25,7 @@ router.post("/", async (req, res) => {
 
 // Route to get all companies with optional pagination
 router.get("/", async (req, res) => {
-  getAllCompanies(req.query.page,JSON.parse(req.query.sortBy),req.query.showing)
+  getAllCompanies(req.query.page,req.query.sortBy,req.query.showing)
     .then((result) => res.status(result.status).send(result))
     .catch((error) => {
       sendErrorResp(error, req, res);

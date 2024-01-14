@@ -12,6 +12,10 @@ module.exports = function (sequelize, DataTypes) {
           type: DataTypes.STRING(500),
           allowNull: true,
         },
+        logo: {
+         type: DataTypes.STRING(500),
+         allowNull: true
+        },
         email: {
           type: DataTypes.STRING(500),
           allowNull: true,
