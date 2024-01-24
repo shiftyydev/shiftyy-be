@@ -1,6 +1,6 @@
 const { tbl_routes,tbl_route_addresses,users } = require("../models");
 const log = require("../utils/logger");
-
+const { Op } = require("sequelize");
 const createRoute = async (body,userid) => {
   try {
     let route = await tbl_routes.create({
@@ -86,7 +86,7 @@ const getAllRoutes = async (page=0,sortBy=[['id',"DESC"]],showing=10,user) => {
   }
 };
 
-const getAllRoutesWithAddresses = async (userid) => {
+const getAllRoutesWithAddresses = async (user) => {
   try {
     let routes = await tbl_routes.findAll({
       include: [
@@ -96,7 +96,9 @@ const getAllRoutesWithAddresses = async (userid) => {
         },
       ],
       where : {
-        user_id : userid
+        [user.isAdmin ? 'id' : user_id] : user.isAdmin ? {
+          [Op.gt] : -1
+        } : user.id
       }
     });
 

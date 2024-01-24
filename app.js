@@ -1,25 +1,26 @@
-require("dotenv").config();
-const express = require("express");
+require('dotenv').config();
+const express = require('express');
 const app = express();
 const PORT = process.env.APP_PORT || 5001;
-const http = require("http");
+const http = require('http');
 const server = http.createServer(app);
-const cors = require("cors");
-const db = require("./models");
-const fs = require('fs')
+const cors = require('cors');
+const db = require('./models');
+const fs = require('fs');
 // routes
-const routes = require("./routes");
-const { initSocket } = require("./utils/socket");
+const routes = require('./routes');
+const { initSocket } = require('./utils/socket');
+const { getUserById } = require('./controllers/user-controller');
 initSocket(server);
 
 // server static images folder
-app.use('/image', express.static('image'))
+app.use('/image', express.static('image'));
 
 // body parser
 // const bodyParser = express.json();
 // app.use(bodyParser);
-app.use(express.json())
-app.use(express.urlencoded({extended: true}))
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
 
 // cors
 app.use(cors());
@@ -38,7 +39,7 @@ function createFolder() {
 
 createFolder();
 
-app.use("/api", routes);
+app.use('/api', routes);
 
 // listen
 server.listen(PORT, () => {

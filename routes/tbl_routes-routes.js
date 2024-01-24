@@ -32,7 +32,7 @@ router.get("/", async (req, res) => {
 });
 
 router.get('/with-addresses', async (req, res) => {
-  getAllRoutesWithAddresses(req.user.id)
+  getAllRoutesWithAddresses(req.user)
     .then((result) => res.status(result.status).send(result))
     .catch((error) => {
       sendErrorResp(error, req, res);
