@@ -86,9 +86,19 @@ const getAllCompanies = async (page = 1, sortBy = undefined, showing = 10) => {
   }
 };
 
-const getCompany = async (id) => {
+
+const getCompanyByUserId = async (id) => {
   try {
-    const company = await companies.findByPk(id);
+    const userData = await users.findByPk(id);
+    if(!userData){
+      return{
+        status: 404,
+        message:"User not found"
+      }
+    }
+
+    console.log("id", id)
+    const company = await companies.findAll({where:{managerId: id}});
     if (!company) {
       return {
         status: 200,
@@ -182,7 +192,6 @@ const getCompaniesInfo = async () => {
 
 const createCompanyWithManager = async (file, body) => {
   try {
-
     const existingcompany = await companies.findOne({
       where: { email: body['Company Email'] }
     });
@@ -208,35 +217,6 @@ const createCompanyWithManager = async (file, body) => {
 
     const password = await bcrypt.hash(body.password, 10);
 
-
-
-    let htmlTemplate = await fs.readFile(
-      './templates/email-verification.html',
-      'utf8'
-    );
-    htmlTemplate = htmlTemplate.replace(
-      '{{message}}',
-      `Your company has been registered Successfully.
-             Here are the Credentials of your Manager.
-             email: ${user.email},
-             password: ${body.password}
-             Note: Do not share these credentials with anyone.
-            `
-    );
-    const mailOptions = {
-      from: 'thomas@shiftyy.com', // sender address
-      to: `${createdCompany.email}`, // list of receivers
-      subject: `Company with name ${createdCompany.name} has been Registered`, // Subject line
-      html: htmlTemplate,
-    };
-
-
-
-
-    tbl_user_companies.create({
-      companyId: createdCompany.id,
-      user_id: user.id
-    });
 
     if (!body['Company Name'] || !body['Company Email']) {
       return {
@@ -296,6 +276,25 @@ const createCompanyWithManager = async (file, body) => {
 
     createdCompany.user = user;
 
+    let htmlTemplate = await fs.readFile(
+      './templates/email-verification.html',
+      'utf8'
+    );
+    htmlTemplate = htmlTemplate.replace(
+      '{{message}}',
+      `Your company has been registered Successfully.
+             Here are the Credentials of your Manager.
+             email: ${user.email},
+             password: ${body.password}
+             Note: Do not share these credentials with anyone.
+            `
+    );
+    const mailOptions = {
+      from: 'thomas@shiftyy.com', // sender address
+      to: `${createdCompany.email}`, // list of receivers
+      subject: `Company with name ${createdCompany.name} has been Registered`, // Subject line
+      html: htmlTemplate,
+    };
 
 
     if (!createdCompany){ return {
@@ -329,7 +328,7 @@ module.exports = {
   createCompanyWithManager,
   createCompany,
   getAllCompanies,
-  getCompany,
+  getCompanyByUserId,
   updateCompany,
   deleteCompany,
   getCompaniesInfo,

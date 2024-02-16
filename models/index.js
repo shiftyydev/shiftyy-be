@@ -65,20 +65,26 @@ sequelize
   .sync({ force: false, alter: true })
   .then(async () => {
     const roles = [
-      'super admin',
-      'admin',
-      'user',
-      'driver',
-      'company admin',
-      'company manager',
+      {
+      role_name: 'super admin',
+      role_id : 2
+    },
+      {
+      role_name: 'manager',
+      role_id : 1
+    },
+      {
+      role_name: 'driver',
+      role_id : 3
+    },
     ];
     await Promise.all(
-      roles.map(async (role) => {
+      roles.map(async (data) => {
         const existingRole = await db.user_roles.findOne({
-          where: { role_name: role },
+          where: { role_name: data.role_name },
         });
         if (!existingRole) {
-          await db.user_roles.create({ role_name: role });
+          await db.user_roles.create({ role_name : data.role_name, id: data.role_id  });
           console.log(`Added ${role} to the user_roles table.`);
         }
       })
@@ -97,7 +103,7 @@ sequelize
               id: 0,
               email: 'superadmin@gmail.com',
               password: await hashPassword('Me@1234'),
-              roleid: 1,
+              roleid: 2,
               isAdmin: true,
             },
           ]);

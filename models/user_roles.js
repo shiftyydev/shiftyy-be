@@ -2,15 +2,14 @@
 module.exports = function(sequelize, DataTypes) {
   return sequelize.define('user_roles', {
     id: {
-      autoIncrement: true,
       type: DataTypes.INTEGER,
       allowNull: false,
       primaryKey: true
     },
     role_name: {
-      type: DataTypes.STRING(2500),
+      type: DataTypes.STRING(),
       allowNull: true
-    }
+    },
   }, {
     sequelize,
     tableName: 'user_roles',

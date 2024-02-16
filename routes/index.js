@@ -62,9 +62,10 @@ router.get("/is-logged-in", isLoggedIn, (req, res) => {
   
     
     const obj = {
-      firstName:  decoded?.name,
-      lastName:  decoded?.name,
+      firstName:  decoded?.firstname,
+      lastName:  decoded?.lastname,
       email:  decoded?.email,
+      roleId: decoded?.roleid,
       token,
     };
     res.status(200).send(obj);

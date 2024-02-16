@@ -10,14 +10,15 @@ const {
   userLogin,
   getAllDrivers,
   getUserById,
+  updateUserData,
 } = require('../controllers/user-controller');
 const router = express.Router();
 // models
 const db = require('../models');
 const { sendErrorResp } = require('../utils/common-utils');
 
-router.post('/', async (req, res) => {
-  createUser(req.body, req.user)
+router.post('/:companyID', async (req, res) => {
+  createUser(req.body, req.user, req.params.companyID)
     .then((result) => res.status(result.status).send(result))
     .catch((error) => {
       sendErrorResp(error, req, res);
@@ -68,10 +69,18 @@ router.patch('/', async (req, res) => {
     });
 });
 
+router.patch('/:id', async (req, res) => {
+  updateUserData(req.body, req.params.id, req.user.id)
+    .then((result) => res.status(result.status).send(result))
+    .catch((error) => {
+      sendErrorResp(error, req, res);
+    });
+});
+
 router.delete('/:id', async (req, res) => {
   deleteUser(req.params.id, req.user)
     .then((result) => res.status(result.status).send(result))
-    .catch((error) => {
+    .catch((error) => { 
       sendErrorResp(error, req, res);
     });
 });
