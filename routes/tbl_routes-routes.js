@@ -107,6 +107,12 @@ router.get('/routeDriver/:routeId', async (req, res) => {
           assignedTo: driverID
         }
       })
+      if(!route){
+        return{
+          status: 404,
+          message: "Route not found"
+        }
+      }
       let routeAddresses = await db.tbl_route_addresses.findAll({
         where: {
           route_id: route.id,

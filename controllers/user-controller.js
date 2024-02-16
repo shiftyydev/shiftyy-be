@@ -255,7 +255,9 @@ const userLogin = async (credentials) => {
       };
     }
 
+    console.log("___________credentials", credentials)
     const isMatch = await bcrypt.compare(credentials.password, user.password);
+    console.log("_______isMatch", isMatch)
     if (!isMatch) {
       return {
         status: 401,
@@ -334,7 +336,7 @@ const updateUserData = async (body , id , userId) => {
       }
     }
      if(body.password){
-      body.password = await hashPassword(userData.password);
+      body.password = await hashPassword(body.password);
      }
     const updatedUser = await users.update(body, {
       where: { id },
