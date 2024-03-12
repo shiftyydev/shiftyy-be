@@ -66,17 +66,17 @@ sequelize
   .then(async () => {
     const roles = [
       {
-      role_name: 'super admin',
-      role_id : 2
-    },
+        role_name: 'super admin',
+        role_id: 2,
+      },
       {
-      role_name: 'manager',
-      role_id : 1
-    },
+        role_name: 'manager',
+        role_id: 1,
+      },
       {
-      role_name: 'driver',
-      role_id : 3
-    },
+        role_name: 'driver',
+        role_id: 3,
+      },
     ];
     await Promise.all(
       roles.map(async (data) => {
@@ -84,8 +84,11 @@ sequelize
           where: { role_name: data.role_name },
         });
         if (!existingRole) {
-          await db.user_roles.create({ role_name : data.role_name, id: data.role_id  });
-          console.log(`Added ${role} to the user_roles table.`);
+          await db.user_roles.create({
+            role_name: data.role_name,
+            id: data.role_id,
+          });
+          console.log(`Added ${data.role_name} to the user_roles table.`);
         }
       })
     ).catch((error) => {

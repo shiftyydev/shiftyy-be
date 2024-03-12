@@ -1,39 +1,45 @@
-const { tbl_routes,tbl_route_addresses,users } = require("../models");
-const log = require("../utils/logger");
-const { Op } = require("sequelize");
-const createRoute = async (body,userid) => {
+const { tbl_routes, tbl_route_addresses, users } = require('../models');
+const log = require('../utils/logger');
+const { Op } = require('sequelize');
+const createRoute = async (body, userid) => {
   try {
+    console.log('body : ', body);
     let route = await tbl_routes.create({
       ...body,
-      user_id: userid
+      user_id: userid,
     });
     return {
       status: 200,
-      message: "Route created successfully",
+      message: 'Route created successfully',
       route: route,
     };
   } catch (error) {
     log.info(error);
     return {
       status: 500,
-      message: "Something went wrong",
+      message: 'Something went wrong',
     };
   }
 };
 
-const getAllRoutes = async (page=0,sortBy=[['id',"DESC"]],showing=10,user) => {
-
-  if(user.userType == "manager"){
+const getAllRoutes = async (
+  page = 0,
+  sortBy = [['id', 'DESC']],
+  showing = 10,
+  user
+) => {
+  if (user.userType == 'manager') {
     let companyAdmin = await users.findOne({
-      where : {
-        id : user.id
+      where: {
+        id: user.id,
       },
     });
-    if(!companyAdmin) return {
-      status: 400,
-      message: "No routes found",
-    };
-    if(companyAdmin.dataValues.childOf){
+    if (!companyAdmin)
+      return {
+        status: 400,
+        message: 'No routes found',
+      };
+    if (companyAdmin.dataValues.childOf) {
       user.id = companyAdmin.dataValues.childOf;
     }
   }
@@ -43,33 +49,33 @@ const getAllRoutes = async (page=0,sortBy=[['id',"DESC"]],showing=10,user) => {
       limit: showing,
       offset: page * showing,
       order: sortBy,
-      where : {
-        [user.userType == "manager" ? "user_id" : "creator_id"] : user.userType == "manager" ? user.id : null
+      where: {
+        [user.userType == 'manager' ? 'user_id' : 'creator_id']:
+          user.userType == 'manager' ? user.id : null,
       },
       include: [
         {
           model: tbl_route_addresses,
-          as:'addresses'
+          as: 'addresses',
         },
       ],
     });
 
     routes.forEach(async (route) => {
-      if(route.dataValues.assignedTo){
+      if (route.dataValues.assignedTo) {
         let user = await users.findOne({
-          where : {
-            id : route.dataValues.assignedTo
-          }
+          where: {
+            id: route.dataValues.assignedTo,
+          },
         });
-        if(user) route.dataValues.driver = user.dataValues;
+        if (user) route.dataValues.driver = user.dataValues;
       }
     });
 
-  
     if (!routes) {
       return {
         status: 400,
-        message: "No routes found",
+        message: 'No routes found',
       };
     } else {
       return {
@@ -81,7 +87,7 @@ const getAllRoutes = async (page=0,sortBy=[['id',"DESC"]],showing=10,user) => {
     console.log(error);
     return {
       status: 500,
-      message: "Something went wrong",
+      message: 'Something went wrong',
     };
   }
 };
@@ -92,20 +98,22 @@ const getAllRoutesWithAddresses = async (user) => {
       include: [
         {
           model: tbl_route_addresses,
-          as:'addresses'
+          as: 'addresses',
         },
       ],
-      where : {
-        [user.isAdmin ? 'id' : user_id] : user.isAdmin ? {
-          [Op.gt] : -1
-        } : user.id
-      }
+      where: {
+        [user.isAdmin ? 'id' : user_id]: user.isAdmin
+          ? {
+              [Op.gt]: -1,
+            }
+          : user.id,
+      },
     });
 
     if (!routes) {
       return {
         status: 400,
-        message: "No routes found",
+        message: 'No routes found',
       };
     } else {
       return {
@@ -117,32 +125,30 @@ const getAllRoutesWithAddresses = async (user) => {
     console.log(error);
     return {
       status: 500,
-      message: "Something went wrong",
+      message: 'Something went wrong',
     };
   }
 };
-
-
 
 const getRoutesInfo = async (userid) => {
   try {
     // return total routes count
     let route = await tbl_routes.count({
-      where : {
-        user_id : userid
-      }
+      where: {
+        user_id: userid,
+      },
     });
     if (!route) {
       return {
         status: 400,
-        message: "No route found",
+        message: 'No route found',
       };
     } else {
       return {
         status: 200,
-        message: "Route found",
+        message: 'Route found',
         page: Math.ceil(route / 10),
-        count : route
+        count: route,
       };
     }
   } catch (error) {
@@ -156,25 +162,28 @@ const updateRoute = async (routeId, body) => {
       where: { id: routeId },
       returning: true,
     });
-    if(body.assignedTo){
-      await tbl_route_addresses.update({
-        status : "pending"
-      },{
-        where : {
-          route_id : routeId
+    if (body.assignedTo) {
+      await tbl_route_addresses.update(
+        {
+          status: 'pending',
+        },
+        {
+          where: {
+            route_id: routeId,
+          },
         }
-      })
+      );
     }
     return {
       status: 200,
-      message: "Route updated successfully",
+      message: 'Route updated successfully',
       updateRoute: updatedRoute[1],
     };
   } catch (error) {
     log.info(error);
     return {
       status: 500,
-      message: "something went wrong",
+      message: 'something went wrong',
     };
   }
 };
@@ -187,18 +196,18 @@ const deleteRoute = async (routeId) => {
     if (deletedRoute == 0) {
       return {
         status: 400,
-        message: "Route not found",
+        message: 'Route not found',
       };
     }
     return {
       status: 200,
-      message: "Route deleted successfully",
+      message: 'Route deleted successfully',
     };
   } catch (error) {
     log.info(error);
     return {
       status: 500,
-      message: "something went wrong",
+      message: 'something went wrong',
     };
   }
 };

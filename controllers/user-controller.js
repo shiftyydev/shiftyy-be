@@ -18,11 +18,12 @@ const signUp = async (userData) => {
       !userData.email ||
       !userData.password ||
       !userData.firstname ||
-      !userData.lastname
+      !userData.lastname ||
+      !userData.companyId
     ) {
       return {
         status: 400,
-        message: 'Email, password, firstname, and lastname are required',
+        message: 'All fields are required!',
       };
     }
 
@@ -34,7 +35,7 @@ const signUp = async (userData) => {
     if (existingUser) {
       return {
         status: 400,
-        message: 'Email already registered',
+        message: 'Email already registered!',
       };
     }
 
@@ -45,6 +46,7 @@ const signUp = async (userData) => {
     const newUser = await users.create({
       firstname: userData.firstname,
       lastname: userData.lastname,
+      companyId: userData.companyId,
       email: userData.email,
       password: hashedPass,
       roleid: 3, // Set roleId to 3 as a user
@@ -52,7 +54,7 @@ const signUp = async (userData) => {
 
     return {
       status: 201, // 201 means resource created
-      message: 'User registered successfully',
+      message: 'User registered successfully!',
       user: {
         id: newUser.id,
         firstname: newUser.firstname,
@@ -64,21 +66,20 @@ const signUp = async (userData) => {
     log.info(error);
     return {
       status: 500,
-      message: 'Something went wrong',
+      message: 'Something went wrong!',
     };
   }
 };
 
 const createUser = async (body, user, companyID) => {
   try {
-  
     let hashedPass = await hashPassword(body.password);
     let roleId;
-    if(body.userType == 'manager'){
-      roleId = 1
+    if (body.userType == 'manager') {
+      roleId = 1;
     }
-    if(body.userType == 'driver'){
-      roleId = 3
+    if (body.userType == 'driver') {
+      roleId = 3;
     }
     let createdUser = await users.create({
       ...body,
@@ -86,7 +87,7 @@ const createUser = async (body, user, companyID) => {
       roleId: roleId,
       childOf: user.childOf || user.id,
     });
-    
+
     let company = await companies.findOne({
       where: { id: companyID },
     });
@@ -103,7 +104,7 @@ const createUser = async (body, user, companyID) => {
       station: createdUser,
     };
   } catch (error) {
-    console.log("_________error", error)
+    console.log('_________error', error);
     log.info(error);
     return {
       status: 500,
@@ -124,40 +125,40 @@ const getAllUsers = async (
   //   where: { user_id: user.id },
   // });
 
-//   if (user.userType == 'manager') {
-//     const companydata = await companies.findOne({
-//       where: { id: company.companyId },
-//       include: [
-//         {
-//           model: users,
-//           as: 'users',
-//         },
-//       ],
-//     });
+  //   if (user.userType == 'manager') {
+  //     const companydata = await companies.findOne({
+  //       where: { id: company.companyId },
+  //       include: [
+  //         {
+  //           model: users,
+  //           as: 'users',
+  //         },
+  //       ],
+  //     });
 
-//     if (!companydata) {
-//       return {
-//         status: 400,
-//         message: 'No Company found',
-//       };
-//     }
+  //     if (!companydata) {
+  //       return {
+  //         status: 400,
+  //         message: 'No Company found',
+  //       };
+  //     }
 
-//     let allUsers = companydata.users;
+  //     let allUsers = companydata.users;
 
-//     if (!allUsers) {
-//       return {
-//         status: 400,
-//         message: 'No User found',
-//       };
-//     }
-// console.log("___________start", users)
-//    console.log("______________________", allUsers.length)
-//     return {
-//       status: 200,
-//       message: 'User found',
-//       users: allUsers,
-//     };
-//   }
+  //     if (!allUsers) {
+  //       return {
+  //         status: 400,
+  //         message: 'No User found',
+  //       };
+  //     }
+  // console.log("___________start", users)
+  //    console.log("______________________", allUsers.length)
+  //     return {
+  //       status: 200,
+  //       message: 'User found',
+  //       users: allUsers,
+  //     };
+  //   }
 
   try {
     // let allUsers = await users.findAll({
@@ -169,11 +170,11 @@ const getAllUsers = async (
     //   order: sortBy
     // });
 
-    if(!companyquery){
+    if (!companyquery) {
       return {
-        status : 403,
-        message : "Company is required"
-      }
+        status: 403,
+        message: 'Company is required',
+      };
     }
     let allUsers = await companies.findOne({
       where: {
@@ -195,7 +196,6 @@ const getAllUsers = async (
         message: 'No User found',
       };
     } else {
-    
       return {
         status: 200,
         message: 'User found',
@@ -203,7 +203,7 @@ const getAllUsers = async (
       };
     }
   } catch (error) {
-    console.log("___________error", error)
+    console.log('___________error', error);
     // log.info(error);
     return {
       status: 500,
@@ -233,7 +233,7 @@ const getUsersInfo = async () => {
       };
     }
   } catch (error) {
-    console.log("___________________", error)
+    console.log('___________________', error);
     log.info(error);
     return {
       status: 500,
@@ -255,9 +255,9 @@ const userLogin = async (credentials) => {
       };
     }
 
-    console.log("___________credentials", credentials)
+    console.log('___________credentials', credentials);
     const isMatch = await bcrypt.compare(credentials.password, user.password);
-    console.log("_______isMatch", isMatch)
+    console.log('_______isMatch', isMatch);
     if (!isMatch) {
       return {
         status: 401,
@@ -322,27 +322,27 @@ const updateUser = async (id, body) => {
   }
 };
 
-const updateUserData = async (body , id , userId) => {
+const updateUserData = async (body, id, userId) => {
   try {
-    console.log("_____it's coming here")
-    console.log("_________body", body )
-    console.log("____________id ", id )
-    console.log("____________userid ", userId)
-    const userData = await users.findOne({where:{id: userId}});
-    if(userData.roleid == 3){
+    console.log("_____it's coming here");
+    console.log('_________body', body);
+    console.log('____________id ', id);
+    console.log('____________userid ', userId);
+    const userData = await users.findOne({ where: { id: userId } });
+    if (userData.roleid == 3) {
       return {
         status: 403,
-        message: "You are not authorized to access this resource"
-      }
+        message: 'You are not authorized to access this resource',
+      };
     }
-     if(body.password){
+    if (body.password) {
       body.password = await hashPassword(body.password);
-     }
+    }
     const updatedUser = await users.update(body, {
       where: { id },
       returning: true,
     });
-    console.log("_______", updatedUser)
+    console.log('_______', updatedUser);
     return {
       status: 200,
       message: `User updated successfully`,
@@ -359,12 +359,12 @@ const updateUserData = async (body , id , userId) => {
 
 const deleteUser = async (id, user) => {
   try {
-    const userData = await users.findOne({where:{id: user.id}});
-    if(userData.roleid == 3){
+    const userData = await users.findOne({ where: { id: user.id } });
+    if (userData.roleid == 3) {
       return {
         status: 403,
-        message: "You are not authorized to access this resource"
-      }
+        message: 'You are not authorized to access this resource',
+      };
     }
     const deletedUser = await users.destroy({
       where: {

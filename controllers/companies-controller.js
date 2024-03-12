@@ -1,10 +1,8 @@
-
-
-const { transporter } = require("../middleware/email-otp");
-const { companies, users, tbl_user_companies } = require("../models");
-const log = require("../utils/logger");
-const fs = require('fs').promises
-const bcrypt = require("bcrypt");
+const { transporter } = require('../middleware/email-otp');
+const { companies, users, tbl_user_companies } = require('../models');
+const log = require('../utils/logger');
+const fs = require('fs').promises;
+const bcrypt = require('bcrypt');
 
 const createCompany = async (body) => {
   try {
@@ -21,6 +19,8 @@ const createCompany = async (body) => {
         message: 'Company name and email are required',
       };
     }
+
+    console.log('body : ', body);
 
     const password = await bcrypt.hash(body.password, 10);
     body.password = password;
@@ -44,26 +44,41 @@ const getAllCompanies = async (page = 1, sortBy = undefined, showing = 10) => {
   try {
     const company = await (sortBy
       ? companies.findAll({
-        limit: showing,
-        offset: page * showing,
-        order: JSON.parse(sortBy),
-        attributes: [
-          'id',
-          'name',
-          'email',
-          'logo',
-          'phone',
-          'address',
-          'city',
-          'state',
-          'country',
-          'zipcode',
-          'activestatus',
-        ],
-      })
+          limit: showing,
+          offset: page * showing,
+          order: JSON.parse(sortBy),
+          attributes: ['id', 'name', 'logo', 'phone', 'address'],
+        })
       : companies.findAll({
-        attributes: ['id', 'name', 'email', 'logo'],
-      }));
+          attributes: ['id', 'name', 'logo'],
+        }));
+
+    for (let index = 0; index < company.length; index++) {
+      const elem = company[index];
+      const companyManagerInfo = await users.findByPk(elem.id);
+
+      company[index].dataValues['Manager First Name'] =
+        companyManagerInfo.dataValues.firstname;
+      company[index].dataValues['Manager Last Name'] =
+        companyManagerInfo.dataValues.lastname;
+      company[index].dataValues.email = companyManagerInfo.dataValues.email;
+      // company[index].dataValues.password =
+      //   companyManagerInfo.dataValues.password;
+    }
+
+    const mappedData = company.map((elem) => {
+      return {
+        id: elem.id,
+        email: elem.email,
+        'Company Name': elem.name,
+        'Company Logo': elem.logo,
+        'Company Phone': elem.phone,
+        'Company Address': elem.address,
+        'Manager First Name': elem.dataValues['Manager First Name'],
+        'Manager Last Name': elem.dataValues['Manager Last Name'],
+        // password: elem.password,
+      };
+    });
 
     if (!company.length) {
       return {
@@ -74,7 +89,7 @@ const getAllCompanies = async (page = 1, sortBy = undefined, showing = 10) => {
       return {
         status: 200,
         message: 'Companies Found',
-        companies: company,
+        companies: mappedData,
       };
     }
   } catch (error) {
@@ -86,19 +101,17 @@ const getAllCompanies = async (page = 1, sortBy = undefined, showing = 10) => {
   }
 };
 
-
 const getCompanyByUserId = async (id) => {
   try {
     const userData = await users.findByPk(id);
-    if(!userData){
-      return{
+    if (!userData) {
+      return {
         status: 404,
-        message:"User not found"
-      }
+        message: 'User not found',
+      };
     }
 
-    console.log("id", id)
-    const company = await companies.findAll({where:{managerId: id}});
+    const company = await companies.findAll({ where: { managerId: id } });
     if (!company) {
       return {
         status: 200,
@@ -120,9 +133,33 @@ const getCompanyByUserId = async (id) => {
   }
 };
 
-const updateCompany = async (id, body) => {
+const updateCompany = async (id, body, file) => {
   try {
-    const updatedCompany = await companies.update(body, {
+    // const password = await bcrypt.hash(body.password, 10);
+    const userUpdatedBody = {
+      firstname: body['Manager First Name'],
+      lastname: body['Manager Last Name'],
+      email: body.email,
+      // password: password,
+    };
+    if (file) {
+      userUpdatedBody.logo = file.path;
+    }
+    await users.update(userUpdatedBody, {
+      where: { id: id },
+    });
+
+    const updatedCompanyBody = {
+      name: body['Company Name'],
+      phone: body['Company Phone'],
+      address: body['Company Address'],
+    };
+
+    if (file) {
+      updatedCompanyBody.logo = file.path;
+    }
+
+    const updatedCompany = await companies.update(updatedCompanyBody, {
       where: { id: id },
     });
 
@@ -193,32 +230,30 @@ const getCompaniesInfo = async () => {
 const createCompanyWithManager = async (file, body) => {
   try {
     const existingcompany = await companies.findOne({
-      where: { email: body['Company Email'] }
+      where: { email: body['email'] },
     });
 
     if (existingcompany) {
       return {
         status: 400,
-        message: "Company already exists"
+        message: 'Company already exists',
       };
     }
 
     const existinguser = await users.findOne({
-      where: { email: body.email }
+      where: { email: body.email },
     });
 
     if (existinguser) {
       return {
         status: 400,
-        message: "User already exists"
+        message: 'User already exists',
       };
     }
 
-
     const password = await bcrypt.hash(body.password, 10);
 
-
-    if (!body['Company Name'] || !body['Company Email']) {
+    if (!body['Company Name'] || !body['email']) {
       return {
         status: 400,
         message: 'Company name and email are required',
@@ -236,17 +271,12 @@ const createCompanyWithManager = async (file, body) => {
       };
     }
 
-
-
-
-
     if (existinguser) {
       return {
         status: 400,
         message: 'User already exists',
       };
     }
-
 
     body.password = password;
 
@@ -262,12 +292,13 @@ const createCompanyWithManager = async (file, body) => {
 
     const createdCompany = await companies.create({
       name: body['Company Name'],
-      email: body['Company Email'],
+      // email: body['Company Email'],
+      // email: body['email'],
+      phone: body['Company Phone'],
+      address: body['Company Address'],
       managerId: user.id,
       logo: file ? file.path : null,
     });
-
-
 
     tbl_user_companies.create({
       companyId: createdCompany.id,
@@ -296,11 +327,12 @@ const createCompanyWithManager = async (file, body) => {
       html: htmlTemplate,
     };
 
-
-    if (!createdCompany){ return {
-      status: 400,
-      message: 'Company not created',
-    };}
+    if (!createdCompany) {
+      return {
+        status: 400,
+        message: 'Company not created',
+      };
+    }
 
     transporter.sendMail(mailOptions, (error, info) => {
       if (error) {
