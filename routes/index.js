@@ -16,6 +16,9 @@ const {
   createUser,
   signUp,
 } = require('../controllers/user-controller');
+const {
+  getAllCompaniesPublic,
+} = require('../controllers/companies-controller');
 
 router.get('/auth', (req, res) => {
   // if user is logged in, send user data
@@ -93,6 +96,14 @@ router.post('/signUp', async (req, res) => {
     });
 });
 
+router.get('/all-companies', (req, res) => {
+  getAllCompaniesPublic()
+    .then((result) => res.status(result.status).send(result))
+    .catch((error) => {
+      log.info(error);
+    });
+});
+
 router.use('/routes', isLoggedIn, tblRoutes_Routes);
 router.use('/vehicles', isLoggedIn, vehicleRoutes);
 router.use('/charging-stations', isLoggedIn, chargingStationRoutes);
@@ -101,7 +112,7 @@ router.use('/equipments', isLoggedIn, equipmentRoutes);
 router.use('/routes-address', isLoggedIn, tblRoutesAddress_Routes);
 router.use('/charging-point', isLoggedIn, usaChargingPointRoutes);
 // router.use("/companies", isLoggedIn, require("./companies-routes"));
-router.use('/companies', require('./companies-routes'));
+router.use('/companies', isLoggedIn, require('./companies-routes'));
 // const setup = (app) => {
 //   if (app) {
 //     log.info("Setting up index...");

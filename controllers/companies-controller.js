@@ -40,47 +40,15 @@ const createCompany = async (body) => {
   }
 };
 
-const getAllCompanies = async (page = 1, sortBy = undefined, showing = 10) => {
+const getAllCompanies = async (page = 1, showing = 10) => {
   try {
-    const company = await (sortBy
-      ? companies.findAll({
-          limit: showing,
-          offset: page * showing,
-          order: JSON.parse(sortBy),
-          attributes: ['id', 'name', 'logo', 'phone', 'address'],
-        })
-      : companies.findAll({
-          attributes: ['id', 'name', 'logo'],
-        }));
-
-    for (let index = 0; index < company.length; index++) {
-      const elem = company[index];
-      const companyManagerInfo = await users.findByPk(elem.id);
-
-      company[index].dataValues['Manager First Name'] =
-        companyManagerInfo.dataValues.firstname;
-      company[index].dataValues['Manager Last Name'] =
-        companyManagerInfo.dataValues.lastname;
-      company[index].dataValues.email = companyManagerInfo.dataValues.email;
-      // company[index].dataValues.password =
-      //   companyManagerInfo.dataValues.password;
-    }
-
-    const mappedData = company.map((elem) => {
-      return {
-        id: elem.id,
-        email: elem.email,
-        'Company Name': elem.name,
-        'Company Logo': elem.logo,
-        'Company Phone': elem.phone,
-        'Company Address': elem.address,
-        'Manager First Name': elem.dataValues['Manager First Name'],
-        'Manager Last Name': elem.dataValues['Manager Last Name'],
-        // password: elem.password,
-      };
+    const allCompanies = await companies.findAll({
+      limit: showing,
+      offset: page * showing,
+      attributes: ['id', 'name', 'logo', 'phone', 'address'],
     });
 
-    if (!company.length) {
+    if (!allCompanies.length) {
       return {
         status: 200,
         message: 'No companies found',
@@ -89,7 +57,33 @@ const getAllCompanies = async (page = 1, sortBy = undefined, showing = 10) => {
       return {
         status: 200,
         message: 'Companies Found',
-        companies: mappedData,
+        companies: allCompanies,
+      };
+    }
+  } catch (error) {
+    log.info(error);
+    return {
+      status: 500,
+      message: 'Something went wrong',
+    };
+  }
+};
+const getAllCompaniesPublic = async () => {
+  try {
+    const allCompanies = await companies.findAll({
+      attributes: ['id', 'name'],
+    });
+
+    if (!allCompanies.length) {
+      return {
+        status: 200,
+        message: 'No companies found',
+      };
+    } else {
+      return {
+        status: 200,
+        message: 'Companies Found',
+        companies: allCompanies,
       };
     }
   } catch (error) {
@@ -364,4 +358,5 @@ module.exports = {
   updateCompany,
   deleteCompany,
   getCompaniesInfo,
+  getAllCompaniesPublic,
 };
