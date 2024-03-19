@@ -479,13 +479,12 @@ const addUserToRole = async (userId, roleId) => {
 };
 const getUserById = async (id) => {
   try {
-    if (!id || id == null) {
+    if (id && typeof id !== Number) {
       return {
         status: 409,
         message: 'Please Provide User Id',
       };
     }
-    console.log('TESTTTTTTTTT', id);
     const userInfo = await users.findOne({
       where: { id },
       include: [
